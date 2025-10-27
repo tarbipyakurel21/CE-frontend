@@ -102,8 +102,9 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/10 pt-8 text-center text-sm opacity-75">
-          <p>&copy; 2025 Builders License Training Institute. All rights reserved.</p>
+          <p>&copy; 2025 Cloud Crust Continuing Education. All rights reserved.</p>
         </div>
+        {/* </CHANGE> */}
       </div>
     </footer>
   )

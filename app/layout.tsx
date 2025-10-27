@@ -15,10 +15,11 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Builders License Training Institute",
-  description: "Professional contractor licensing and continuing education courses",
+  title: "Cloud Crust - Continuing Education",
+  description: "Professional contractor continuing education courses for Mississippi and Alabama",
     generator: 'v0.app'
 }
+// </CHANGE>
 
 export default function RootLayout({
   children,

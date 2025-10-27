@@ -27,11 +27,12 @@ export function Hero() {
           </div>
 
           <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 text-balance leading-tight">
-            {selectedState === "MS" ? "Mississippi" : "Alabama"} Contractor Continuing Education
+            Professional Continuing Education for {selectedState === "MS" ? "Mississippi" : "Alabama"} Contractors
           </h1>
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-            Online Courses • On-Demand • Available 24/7 • Mobile Friendly
+            Flexible Online Courses • Self-Paced Learning • 24/7 Access • Mobile Friendly
           </p>
+          {/* </CHANGE> */}
           <Button size="lg" className="h-12 px-8 text-base font-semibold">
             View {selectedState === "MS" ? "Mississippi" : "Alabama"} Courses
           </Button>
