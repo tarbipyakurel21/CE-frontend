@@ -1,37 +1,44 @@
 import { redirect } from "next/navigation"
-import { createServerClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/auth/jwt"
+import { getEnrollment } from "@/lib/models/enrollment"
+import { getCourseById } from "@/lib/models/course"
 import { CoursePlayer } from "@/components/course-player"
 
 export default async function CoursePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createServerClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const currentUser = await getCurrentUser()
 
-  if (!user) {
+  if (!currentUser) {
     redirect("/login")
   }
 
-  // Check if user is enrolled in this course
-  const { data: enrollment } = await supabase
-    .from("enrollments")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("course_id", id)
-    .single()
+  const enrollment = await getEnrollment(currentUser.userId, id)
 
   if (!enrollment) {
     redirect("/dashboard")
   }
 
-  // Fetch course details
-  const { data: course } = await supabase.from("courses").select("*").eq("id", id).single()
+  const course = await getCourseById(id)
 
   if (!course) {
     redirect("/dashboard")
   }
 
-  return <CoursePlayer course={course} enrollment={enrollment} userId={user.id} />
+  return (
+    <CoursePlayer
+      course={{
+        id: course._id!.toString(),
+        title: course.title,
+        content: course.content,
+        hours: course.hours,
+      }}
+      enrollment={{
+        id: enrollment._id!.toString(),
+        progress: enrollment.progress,
+        completed: enrollment.completed,
+      }}
+      userId={currentUser.userId}
+    />
+  )
 }

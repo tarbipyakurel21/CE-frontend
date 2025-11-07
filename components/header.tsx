@@ -1,16 +1,13 @@
 import { Phone, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CartSheet } from "@/components/cart-sheet"
-import { createServerClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { UserMenu } from "@/components/user-menu"
 import Image from "next/image"
+import { getCurrentUser } from "@/lib/auth/jwt"
 
 export async function Header() {
-  const supabase = await createServerClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const currentUser = await getCurrentUser()
 
   return (
     <header className="bg-white border-b border-border">
@@ -32,8 +29,8 @@ export async function Header() {
           </div>
           <div className="flex items-center gap-4">
             <CartSheet />
-            {user ? (
-              <UserMenu user={user} />
+            {currentUser ? (
+              <UserMenu user={{ email: currentUser.email }} />
             ) : (
               <Button asChild variant="ghost" size="sm">
                 <Link href="/login">
@@ -58,12 +55,11 @@ export async function Header() {
                 priority
               />
             </Link>
-            {/* </CHANGE> */}
             <div className="flex items-center gap-8 text-sm font-medium">
               <Link href="/" className="text-foreground hover:text-primary transition-colors">
                 Courses
               </Link>
-              {user && (
+              {currentUser && (
                 <Link href="/dashboard" className="text-foreground hover:text-primary transition-colors">
                   My Dashboard
                 </Link>

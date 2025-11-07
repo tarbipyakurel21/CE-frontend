@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 export function SignupForm() {
   const [email, setEmail] = useState("")
@@ -17,9 +16,7 @@ export function SignupForm() {
   const [fullName, setFullName] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
   const router = useRouter()
-  const supabase = getSupabaseBrowserClient()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,43 +24,25 @@ export function SignupForm() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
-        },
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, fullName }),
       })
 
-      if (error) throw error
+      const data = await response.json()
 
-      setSuccess(true)
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to sign up")
+      }
+
+      router.push("/dashboard")
+      router.refresh()
     } catch (err: any) {
       setError(err.message || "Failed to sign up")
     } finally {
       setLoading(false)
     }
-  }
-
-  if (success) {
-    return (
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Check your email</CardTitle>
-          <CardDescription>
-            We've sent you a confirmation link. Please check your email to verify your account.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button onClick={() => router.push("/login")} className="w-full">
-            Go to Login
-          </Button>
-        </CardFooter>
-      </Card>
-    )
   }
 
   return (

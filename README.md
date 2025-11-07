@@ -1,30 +1,100 @@
-# Contractor license website
+# Cloud Crust Continuing Education Platform
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A modern contractor continuing education platform built with Next.js, MongoDB, and JWT authentication.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/tarbi-pyakurels-projects/v0-contractor-license-website)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/VHAW3LmC1vV)
+## Features
 
-## Overview
+- JWT-based authentication
+- MongoDB database with Mongoose ODM
+- Stripe payment integration
+- Course management system
+- User dashboard with progress tracking
+- Certificate generation
+- State-specific courses (MS & AL)
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Getting Started
 
-## Deployment
+### Prerequisites
 
-Your project is live at:
+- Node.js 18+ installed
+- MongoDB Atlas account or local MongoDB instance
+- Stripe account for payments
 
-**[https://vercel.com/tarbi-pyakurels-projects/v0-contractor-license-website](https://vercel.com/tarbi-pyakurels-projects/v0-contractor-license-website)**
+### Installation
 
-## Build your app
+1. Clone the repository:
+\`\`\`bash
+git clone https://github.com/cloudcrust25-creator/Continuing-Education-.git
+cd Continuing-Education-
+\`\`\`
 
-Continue building your app on:
+2. Install dependencies:
+\`\`\`bash
+npm install
+\`\`\`
 
-**[https://v0.app/chat/projects/VHAW3LmC1vV](https://v0.app/chat/projects/VHAW3LmC1vV)**
+3. Set up environment variables:
+\`\`\`bash
+cp .env.local.example .env.local
+\`\`\`
 
-## How It Works
+Then edit `.env.local` with your actual values:
+- `MONGODB_URI`: Your MongoDB connection string
+- `JWT_SECRET`: A secure random string for JWT signing
+- `STRIPE_SECRET_KEY`: Your Stripe secret key
+- `STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+4. Initialize the database:
+\`\`\`bash
+npm run dev
+\`\`\`
+
+Visit `http://localhost:3000/admin/setup` and click "Run Database Setup"
+
+5. Start the development server:
+\`\`\`bash
+npm run dev
+\`\`\`
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `MONGODB_URI` | MongoDB connection string |
+| `MONGODB_DB_NAME` | Database name (default: cloud_crust) |
+| `JWT_SECRET` | Secret key for JWT token signing |
+| `NEXT_PUBLIC_APP_URL` | Application URL for redirects |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+
+## Tech Stack
+
+- **Framework**: Next.js 16 with App Router
+- **Database**: MongoDB with native driver
+- **Authentication**: JWT (JSON Web Tokens)
+- **Payments**: Stripe
+- **UI**: Tailwind CSS + shadcn/ui
+- **Language**: TypeScript
+
+## Project Structure
+
+\`\`\`
+├── app/                    # Next.js app directory
+│   ├── api/               # API routes
+│   ├── auth/              # Auth pages
+│   ├── dashboard/         # User dashboard
+│   └── course/            # Course pages
+├── components/            # React components
+├── lib/                   # Utilities and models
+│   ├── models/           # MongoDB models
+│   ├── auth/             # JWT utilities
+│   └── mongodb.ts        # Database connection
+└── public/               # Static assets
+\`\`\`
+
+## License
+
+MIT

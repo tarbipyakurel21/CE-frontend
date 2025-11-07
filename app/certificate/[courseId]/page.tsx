@@ -1,51 +1,39 @@
 import { redirect } from "next/navigation"
-import { createServerClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/auth/jwt"
+import { getCertificate } from "@/lib/models/certificate"
+import { getCourseById } from "@/lib/models/course"
+import { findUserById } from "@/lib/models/user"
 import { Certificate } from "@/components/certificate"
 
 export default async function CertificatePage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = await params
-  const supabase = await createServerClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const currentUser = await getCurrentUser()
 
-  if (!user) {
+  if (!currentUser) {
     redirect("/login")
   }
 
-  // Fetch certificate
-  const { data: certificate } = await supabase
-    .from("certificates")
-    .select(
-      `
-      *,
-      courses (
-        title,
-        hours,
-        state_code
-      )
-    `,
-    )
-    .eq("user_id", user.id)
-    .eq("course_id", courseId)
-    .single()
+  const certificate = await getCertificate(currentUser.userId, courseId)
 
   if (!certificate) {
     redirect("/dashboard")
   }
 
-  // Fetch user profile
-  const { data: profile } = await supabase.from("profiles").select("full_name, email").eq("id", user.id).single()
+  const [course, user] = await Promise.all([getCourseById(courseId), findUserById(currentUser.userId)])
+
+  if (!course || !user) {
+    redirect("/dashboard")
+  }
 
   return (
     <Certificate
-      certificateNumber={certificate.certificate_number}
-      studentName={profile?.full_name || profile?.email || "Student"}
-      courseName={certificate.courses.title}
-      hours={certificate.courses.hours}
-      stateCode={certificate.courses.state_code}
-      completionDate={new Date(certificate.issued_at).toLocaleDateString("en-US", {
+      certificateNumber={certificate.certificateNumber}
+      studentName={user.fullName || user.email}
+      courseName={course.title}
+      hours={course.hours}
+      stateCode={course.stateCode}
+      completionDate={new Date(certificate.issuedAt).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",

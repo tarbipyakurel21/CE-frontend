@@ -3,21 +3,21 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 
 export interface Course {
-  id: number
+  id: string
   title: string
-  description: string | null
-  state_code: string
+  description: string
+  stateCode: string
   hours: number
   price: number
-  topics: string[] | null
-  image_url: string | null
-  is_bestseller: boolean
+  category: string
+  imageUrl?: string
+  isBestseller: boolean
 }
 
 interface CartContextType {
   cart: Course[]
   addToCart: (course: Course) => void
-  removeFromCart: (courseId: number) => void
+  removeFromCart: (courseId: string) => void
   clearCart: () => void
   cartTotal: number
   cartCount: number
@@ -51,7 +51,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const removeFromCart = (courseId: number) => {
+  const removeFromCart = (courseId: string) => {
     setCart((prev) => prev.filter((item) => item.id !== courseId))
   }
 

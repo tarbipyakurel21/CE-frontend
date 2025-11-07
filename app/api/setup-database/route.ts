@@ -1,102 +1,132 @@
-import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
+import { getDatabase } from "@/lib/mongodb"
 
 export async function POST() {
   try {
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    })
-
+    const db = await getDatabase()
     console.log("[v0] Starting database setup...")
 
-    // Insert course data directly
-    const courses = [
-      {
-        title: "Mississippi 2 Hour Project Management",
-        description:
-          "This course has been approved by the Mississippi State Board of Contractors for 2 hours of continuing education credit.",
-        state_code: "MS",
-        hours: 2,
-        price: 29.0,
-        topics: [
-          "Purpose of project management",
-          "Project management concerns",
-          "Useful systems for project management",
-        ],
-        is_bestseller: true,
-        image_url: "/project-management-construction.jpg",
-      },
-      {
-        title: "Mississippi 2 Hour Roofing & Repair",
-        description:
-          "This course has been approved by the Mississippi State Board of Contractors for 2 hours of continuing education credit.",
-        state_code: "MS",
-        hours: 2,
-        price: 29.0,
-        topics: ["Sources of damage", "Leaks", "Intensive care"],
-        is_bestseller: false,
-        image_url: "/roofing-repair-construction.jpg",
-      },
-      {
-        title: "Mississippi 4 Hour Business Management",
-        description:
-          "This course covers essential business management topics for contractors including financial planning, contracts, and risk management.",
-        state_code: "MS",
-        hours: 4,
-        price: 49.0,
-        topics: ["Financial planning", "Contract management", "Risk assessment", "Business operations"],
-        is_bestseller: false,
-        image_url: "/business-management-office.jpg",
-      },
-      {
-        title: "Alabama 6 Hour Contractor Continuing Education",
-        description:
-          "Complete your Alabama contractor license renewal requirements with this comprehensive 6-hour course.",
-        state_code: "AL",
-        hours: 6,
-        price: 59.0,
-        topics: ["Building codes", "Safety regulations", "Contract law", "Business practices"],
-        is_bestseller: true,
-        image_url: "/construction-safety-equipment.jpg",
-      },
-      {
-        title: "Alabama 3 Hour Ethics & Professionalism",
-        description: "Learn about professional ethics and standards for contractors in Alabama.",
-        state_code: "AL",
-        hours: 3,
-        price: 39.0,
-        topics: ["Professional ethics", "Industry standards", "Legal responsibilities"],
-        is_bestseller: false,
-        image_url: "/professional-handshake-business.jpg",
-      },
-    ]
+    // Create indexes
+    await db.collection("users").createIndex({ email: 1 }, { unique: true })
+    await db.collection("courses").createIndex({ stateCode: 1 })
+    await db.collection("enrollments").createIndex({ userId: 1, courseId: 1 })
+    await db.collection("certificates").createIndex({ userId: 1, courseId: 1 }, { unique: true })
 
     // Check if courses already exist
-    const { data: existingCourses } = await supabase.from("courses").select("id").limit(1)
+    const existingCourses = await db.collection("courses").countDocuments()
 
-    if (existingCourses && existingCourses.length > 0) {
+    if (existingCourses > 0) {
       return NextResponse.json({
         success: true,
         message: "Database already set up!",
       })
     }
 
-    // Insert courses
-    const { error: insertError } = await supabase.from("courses").insert(courses)
+    // Insert course data
+    const courses = [
+      {
+        title: "Mississippi 2 Hour Project Management",
+        description:
+          "This course has been approved by the Mississippi State Board of Contractors for 2 hours of continuing education credit.",
+        stateCode: "MS",
+        hours: 2,
+        price: 29.0,
+        category: "Project Management",
+        isBestseller: true,
+        imageUrl: "/project-management-construction.jpg",
+        content: `
+# Mississippi 2 Hour Project Management
 
-    if (insertError) {
-      console.error("[v0] Insert courses error:", insertError)
-      return NextResponse.json(
-        {
-          error: `Failed to insert courses: ${insertError.message}`,
-          details: insertError,
-        },
-        { status: 500 },
-      )
-    }
+## Course Overview
+This comprehensive course covers the essential aspects of project management for contractors...
+
+## Learning Objectives
+- Understand the fundamentals of project management
+- Learn effective project planning techniques
+- Master scheduling and resource allocation
+...
+        `,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        title: "Mississippi 2 Hour Roofing & Repair",
+        description:
+          "This course has been approved by the Mississippi State Board of Contractors for 2 hours of continuing education credit.",
+        stateCode: "MS",
+        hours: 2,
+        price: 29.0,
+        category: "Roofing",
+        isBestseller: false,
+        imageUrl: "/roofing-repair-construction.jpg",
+        content: `
+# Mississippi 2 Hour Roofing & Repair
+
+## Course Overview
+Learn about roofing systems, common repairs, and maintenance best practices...
+        `,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        title: "Mississippi 4 Hour Business Management",
+        description:
+          "This course covers essential business management topics for contractors including financial planning, contracts, and risk management.",
+        stateCode: "MS",
+        hours: 4,
+        price: 49.0,
+        category: "Business",
+        isBestseller: false,
+        imageUrl: "/business-management-office.jpg",
+        content: `
+# Mississippi 4 Hour Business Management
+
+## Course Overview
+Master the business side of contracting with this comprehensive course...
+        `,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        title: "Alabama 6 Hour Contractor Continuing Education",
+        description:
+          "Complete your Alabama contractor license renewal requirements with this comprehensive 6-hour course.",
+        stateCode: "AL",
+        hours: 6,
+        price: 59.0,
+        category: "General",
+        isBestseller: true,
+        imageUrl: "/construction-safety-equipment.jpg",
+        content: `
+# Alabama 6 Hour Contractor Continuing Education
+
+## Course Overview
+Fulfill your Alabama continuing education requirements with this approved course...
+        `,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        title: "Alabama 3 Hour Ethics & Professionalism",
+        description: "Learn about professional ethics and standards for contractors in Alabama.",
+        stateCode: "AL",
+        hours: 3,
+        price: 39.0,
+        category: "Ethics",
+        isBestseller: false,
+        imageUrl: "/professional-handshake-business.jpg",
+        content: `
+# Alabama 3 Hour Ethics & Professionalism
+
+## Course Overview
+Understand professional ethics and responsibilities in the contracting industry...
+        `,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]
+
+    await db.collection("courses").insertMany(courses)
 
     console.log("[v0] Database setup complete!")
 

@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { useCart, type Course } from "@/lib/cart-context"
 import { Loader2 } from "lucide-react"
 
@@ -14,15 +13,16 @@ export function CourseGrid() {
   const [loading, setLoading] = useState(true)
   const [selectedState, setSelectedState] = useState("MS")
   const { addToCart, cart } = useCart()
-  const supabase = getSupabaseBrowserClient()
 
   useEffect(() => {
     async function fetchCourses() {
       try {
-        const { data, error } = await supabase.from("courses").select("*").order("is_bestseller", { ascending: false })
+        // Fetch courses from MongoDB API instead of Supabase
+        const response = await fetch("/api/courses")
+        if (!response.ok) throw new Error("Failed to fetch courses")
 
-        if (error) throw error
-        setCourses(data || [])
+        const data = await response.json()
+        setCourses(data.courses || [])
       } catch (error) {
         console.error("Error fetching courses:", error)
       } finally {
@@ -31,11 +31,11 @@ export function CourseGrid() {
     }
 
     fetchCourses()
-  }, [supabase])
+  }, [])
 
-  const isInCart = (courseId: number) => cart.some((item) => item.id === courseId)
+  const isInCart = (courseId: string) => cart.some((item) => item.id === courseId)
 
-  const filteredCourses = courses.filter((course) => course.state_code === selectedState)
+  const filteredCourses = courses.filter((course) => course.stateCode === selectedState)
 
   if (loading) {
     return (
@@ -67,13 +67,13 @@ export function CourseGrid() {
                   <div className="relative h-56 overflow-hidden bg-muted">
                     <img
                       src={
-                        course.image_url ||
-                        `/placeholder.svg?height=400&width=600&query=${encodeURIComponent(course.title) || "/placeholder.svg"}`
+                        course.imageUrl ||
+                        `/placeholder.svg?height=400&width=600&query=${encodeURIComponent(course.title)}`
                       }
                       alt={course.title}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                     />
-                    {course.is_bestseller && (
+                    {course.isBestseller && (
                       <Badge className="absolute top-3 right-3 bg-primary shadow-lg">Bestseller</Badge>
                     )}
                   </div>
@@ -82,22 +82,12 @@ export function CourseGrid() {
                     <CardDescription className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary">{course.hours} Hours</Badge>
-                        <Badge variant="outline">{course.state_code}</Badge>
+                        <Badge variant="outline">{course.stateCode}</Badge>
                       </div>
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1">
                     <p className="text-sm text-muted-foreground leading-relaxed">{course.description}</p>
-                    {course.topics && course.topics.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-xs font-semibold mb-2">Topics covered:</p>
-                        <ul className="text-xs text-muted-foreground space-y-1">
-                          {course.topics.slice(0, 3).map((topic, idx) => (
-                            <li key={idx}>• {topic}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </CardContent>
                   <CardFooter className="flex items-center justify-between">
                     <Button
@@ -121,13 +111,13 @@ export function CourseGrid() {
                   <div className="relative h-56 overflow-hidden bg-muted">
                     <img
                       src={
-                        course.image_url ||
-                        `/placeholder.svg?height=400&width=600&query=${encodeURIComponent(course.title) || "/placeholder.svg"}`
+                        course.imageUrl ||
+                        `/placeholder.svg?height=400&width=600&query=${encodeURIComponent(course.title)}`
                       }
                       alt={course.title}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                     />
-                    {course.is_bestseller && (
+                    {course.isBestseller && (
                       <Badge className="absolute top-3 right-3 bg-primary shadow-lg">Bestseller</Badge>
                     )}
                   </div>
@@ -136,22 +126,12 @@ export function CourseGrid() {
                     <CardDescription className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary">{course.hours} Hours</Badge>
-                        <Badge variant="outline">{course.state_code}</Badge>
+                        <Badge variant="outline">{course.stateCode}</Badge>
                       </div>
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1">
                     <p className="text-sm text-muted-foreground leading-relaxed">{course.description}</p>
-                    {course.topics && course.topics.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-xs font-semibold mb-2">Topics covered:</p>
-                        <ul className="text-xs text-muted-foreground space-y-1">
-                          {course.topics.slice(0, 3).map((topic, idx) => (
-                            <li key={idx}>• {topic}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </CardContent>
                   <CardFooter className="flex items-center justify-between">
                     <Button

@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
-import { createClient } from "@supabase/supabase-js"
+import { createEnrollments } from "@/lib/models/enrollment"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-12-18.acacia",
 })
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(request: Request) {
   const body = await request.text()
@@ -26,22 +24,14 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session
 
     const userId = session.metadata?.userId
-    const courseIds = session.metadata?.courseIds?.split(",").map((id) => Number.parseInt(id))
+    const courseIds = session.metadata?.courseIds?.split(",")
 
     if (userId && courseIds) {
-      // Create enrollments for each course
-      const enrollments = courseIds.map((courseId) => ({
-        user_id: userId,
-        course_id: courseId,
-        stripe_payment_id: session.payment_intent as string,
-      }))
-
-      const { error } = await supabase.from("enrollments").insert(enrollments)
-
-      if (error) {
-        console.error("[v0] Failed to create enrollments:", error)
-      } else {
+      try {
+        await createEnrollments(userId, courseIds)
         console.log("[v0] Successfully created enrollments for user:", userId)
+      } catch (error) {
+        console.error("[v0] Failed to create enrollments:", error)
       }
     }
   }

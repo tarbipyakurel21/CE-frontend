@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
-import { createServerClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/auth/jwt"
+import { getCoursesByIds } from "@/lib/models/course"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-12-18.acacia",
@@ -14,20 +15,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No courses provided" }, { status: 400 })
     }
 
-    // Get user from Supabase
-    const supabase = await createServerClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const currentUser = await getCurrentUser()
 
-    if (!user) {
+    if (!currentUser) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
-    // Fetch course details from database
-    const { data: courses, error } = await supabase.from("courses").select("*").in("id", courseIds)
+    const courses = await getCoursesByIds(courseIds)
 
-    if (error || !courses) {
+    if (!courses || courses.length === 0) {
       return NextResponse.json({ error: "Failed to fetch courses" }, { status: 500 })
     }
 
@@ -39,18 +35,18 @@ export async function POST(request: Request) {
           currency: "usd",
           product_data: {
             name: course.title,
-            description: `${course.hours} Hour Course - ${course.state_code}`,
+            description: `${course.hours} Hour Course - ${course.stateCode}`,
           },
           unit_amount: Math.round(course.price * 100), // Convert to cents
         },
         quantity: 1,
       })),
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || request.headers.get("origin")}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || request.headers.get("origin")}/checkout/cancel`,
-      customer_email: user.email,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin")}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin")}/checkout/cancel`,
+      customer_email: currentUser.email,
       metadata: {
-        userId: user.id,
+        userId: currentUser.userId,
         courseIds: courseIds.join(","),
       },
     })
