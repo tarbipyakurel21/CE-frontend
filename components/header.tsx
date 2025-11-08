@@ -4,10 +4,10 @@ import { CartSheet } from "@/components/cart-sheet"
 import Link from "next/link"
 import { UserMenu } from "@/components/user-menu"
 import Image from "next/image"
-import { getCurrentUser } from "@/lib/auth/jwt"
+import { auth } from "@/lib/auth"
 
 export async function Header() {
-  const currentUser = await getCurrentUser()
+  const session = await auth()
 
   return (
     <header className="bg-white border-b border-border">
@@ -29,8 +29,8 @@ export async function Header() {
           </div>
           <div className="flex items-center gap-4">
             <CartSheet />
-            {currentUser ? (
-              <UserMenu user={{ email: currentUser.email }} />
+            {session?.user ? (
+              <UserMenu user={{ email: session.user.email || "" }} />
             ) : (
               <Button asChild variant="ghost" size="sm">
                 <Link href="/login">
@@ -59,7 +59,7 @@ export async function Header() {
               <Link href="/" className="text-foreground hover:text-primary transition-colors">
                 Courses
               </Link>
-              {currentUser && (
+              {session?.user && (
                 <Link href="/dashboard" className="text-foreground hover:text-primary transition-colors">
                   My Dashboard
                 </Link>

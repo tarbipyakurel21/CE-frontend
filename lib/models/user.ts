@@ -5,29 +5,31 @@ import bcrypt from "bcryptjs"
 export interface User {
   _id?: ObjectId
   email: string
-  password: string
+  password?: string
   fullName?: string
+  name?: string
+  image?: string
+  emailVerified?: Date
   createdAt: Date
   updatedAt: Date
 }
 
-export async function createUser(email: string, password: string, fullName?: string): Promise<User> {
+export async function createUser(email: string, password?: string, fullName?: string): Promise<User> {
   const db = await getDatabase()
   const usersCollection = db.collection<User>("users")
 
-  // Check if user already exists
   const existingUser = await usersCollection.findOne({ email })
   if (existingUser) {
     throw new Error("User already exists")
   }
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10)
+  const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined
 
   const user: User = {
     email,
-    password: hashedPassword,
+    ...(hashedPassword && { password: hashedPassword }),
     fullName,
+    name: fullName,
     createdAt: new Date(),
     updatedAt: new Date(),
   }

@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
+import { signOut } from "next-auth/react"
 
 interface UserMenuProps {
   user: {
@@ -22,7 +23,7 @@ export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter()
 
   const handleSignOut = async () => {
-    await fetch("/api/auth/logout", { method: "POST" })
+    await signOut({ redirect: false })
     router.push("/")
     router.refresh()
   }

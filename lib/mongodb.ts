@@ -42,4 +42,5 @@ export async function getDatabase(): Promise<Db> {
   return client.db(process.env.MONGODB_DB_NAME || "cloud_crust")
 }
 
+export { getMongoClient }
 export default getMongoClient

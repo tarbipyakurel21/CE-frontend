@@ -1,24 +1,22 @@
-import { NextResponse, type NextRequest } from "next/server"
-import { verifyToken } from "@/lib/auth/jwt"
+import { auth } from "@/lib/auth"
+import { NextResponse } from "next/server"
 
-export async function middleware(request: NextRequest) {
-  const token = request.cookies.get("auth-token")?.value
-
-  // Verify JWT token
-  const user = token ? await verifyToken(token) : null
+export default auth((req) => {
+  const isAuth = !!req.auth
+  const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/signup")
 
   // Protect dashboard and course routes
-  if ((request.nextUrl.pathname.startsWith("/dashboard") || request.nextUrl.pathname.startsWith("/course")) && !user) {
-    return NextResponse.redirect(new URL("/login", request.url))
+  if ((req.nextUrl.pathname.startsWith("/dashboard") || req.nextUrl.pathname.startsWith("/course")) && !isAuth) {
+    return NextResponse.redirect(new URL("/login", req.url))
   }
 
   // Redirect logged-in users away from auth pages
-  if ((request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/signup") && user) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+  if (isAuthPage && isAuth) {
+    return NextResponse.redirect(new URL("/dashboard", req.url))
   }
 
   return NextResponse.next()
-}
+})
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api).*)"],
